@@ -2,6 +2,7 @@
 import React, { useContext, useEffect, useRef } from 'react'
 import { css, jsx } from '@emotion/react'
 import { StoreContext } from '.'
+import AudioPlayer from './AudioPlayer'
 const handleProgress = (time, duration) => {
   const width = 300 * (time / duration)
   if (Number.isNaN(width)) {
@@ -11,24 +12,15 @@ const handleProgress = (time, duration) => {
 }
 const Playbar = () => {
   const { state, dispatch } = useContext(StoreContext)
+  const song = state.media[state.currentSongId]
+  const isFav = state.playlists.favorites.has(state.currentSongId)
   useEffect(() => {
-    if (state.playing) {
-      audioRef.current.load()
-      audioRef.current.play()
-    } else {
-      audioRef.current.pause()
-    }
-  }, [state.playing, state.currentSongId])
-  useEffect(() => {
-    audioRef.current.volume = state.currentVolume
-  }, [state.currentVolume])
-  useEffect(() => {
-    // const isSongFinished = state.time / state.duration === 1
     if (state.currentTime / state.currentDuration === 1) {
       dispatch({ type: 'PAUSE' })
       dispatch({ type: 'SET_CURRENT_TIME', time: 0 })
     }
   }, [state.currentTime, state.currentDuration])
+
   const playNext = () => {
     let idx = state.media.ids.findIndex((item) => item === state.currentSongId)
     if (idx === -1 && !state.currentSongId) {
@@ -65,11 +57,9 @@ const Playbar = () => {
     dispatch({ type: 'SET_CURRENT_SONG', songId: state.media.ids[idx] })
     dispatch({ type: 'PLAY', songId: state.media.ids[idx] })
   }
-  const song = state.media[state.currentSongId]
-  const isFav = state.playlists.favorites.has(state.currentSongId)
   const playOrPause = () =>
     state.playing ? dispatch({ type: 'PAUSE' }) : dispatch({ type: 'PLAY' })
-  const audioRef = useRef()
+
   return (
     <div className="Playbar" css={CSS}>
       <div className="left">
@@ -122,23 +112,7 @@ const Playbar = () => {
             </div>
             <span>{formatTime(Math.floor(state.currentDuration))}</span>
           </div>
-          <audio
-            ref={audioRef}
-            src={
-              song && song.title
-                ? `./media/${song.title} - ${song.artist}.mp3`
-                : ``
-            }
-            onLoadedMetadata={() => {
-              dispatch({
-                type: 'SET_CURRENT_DURATION',
-                duration: audioRef.current.duration
-              })
-            }}
-            onTimeUpdate={(e) => {
-              dispatch({ type: 'SET_CURRENT_TIME', time: e.target.currentTime })
-            }}
-          />
+          <AudioPlayer />
         </div>
       </div>
       <div className="right">
