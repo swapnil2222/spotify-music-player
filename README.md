@@ -1,4 +1,4 @@
-# React Hacker
+# Spotify Music Player
 
 A Simple music player app similar to spotify created using ReactJS
 
